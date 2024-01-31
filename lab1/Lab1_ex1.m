@@ -1,5 +1,4 @@
-
-% June 8, 2023
+% June 8, 2023 modified by pietbro January 22, 2024
 % Underwater Colorimetry Course @ IUI Eilat
 
 % Basic Colorimetry and Image formation exercises
@@ -7,7 +6,11 @@
 % Simulation Exercises
 clear;close;clc
 
-%% Exercise 1 - Simulate a Macbeth ColorChecker
+% filePath = matlab.desktop.editor.getActiveFilename;
+% folder = fileparts(which(filePath)); 
+% addpath(genpath(folder));
+
+%% Step 1 - Simulate a Macbeth ColorChecker
 
 % Download the data needed from the github repo
 % https://github.com/COLOR-Lab-Eilat/Underwater-colorimetry
@@ -15,26 +18,31 @@ clear;close;clc
 % Use the function importdata to read the csv files. The importdata function will create a struct with fields data, textdata,
 % rowheaders. 
 
-% Load the reflectances - The data will be 25 x 81, where 1st row is wavelength, and
+%% Load the reflectances
+
+% The data will be 25 x 81, where 1st row is wavelength, and
 % rows 2-25 are the patches of the color checker.
-refl = importdata('/Users/deryaakkaynak/Documents/Research_Local/Github/Colorimetry/Underwater-colorimetry-main/MacbethColorCheckerReflectances.csv');
+refl = importdata('data/MacbethColorCheckerReflectances.csv');
 % Inspect the data — pay attention that the wavelength range is 380:5:780.
 % This commend will print out the wavelength range:
 refl.data(1,:)
 
 
 %% Load the relevant camera's curves
-% Don't forget to also load the second camera!
-cam = importdata('/Users/deryaakkaynak/Documents/Research_Local/Github/Colorimetry/Underwater-colorimetry-main/Nikon_D90.csv');
+
+cam = importdata('data/Nikon_D90.csv');
 % Again, inspect the wavelength ranges, this dataset is 400:10:700. This commend will print out the wavelength range:
 cam.data(:,1)
 
+% Don't forget to also load the second camera!
+
 %% Load the light data
-% Don't forget to also load the second illuminant
-light = importdata('/Users/deryaakkaynak/Documents/Research_Local/Github/Colorimetry/Underwater-colorimetry-main/illuminant-D65.csv');
+
+light = importdata('data/illuminant-D65.csv');
 % Inspect the wavelength ranges. This dataset is 300:5:830 nm.
 light.data(:,1)
 
+% Don't forget to also load the second illuminant!
 %% Now we saw that the three ingredients we needed to calculate radiance have different wavelength ranges. 
 % This is quite common. We will have to interpolate to a common range of 400:10:700 (corresponding to the camera, as that appears to be the coarsest) as follows:
 
@@ -51,9 +59,9 @@ rgb = getradiance(refl_spectra, light_spectra, cam.data(:,2:end));
 mcc = visualizeColorChecker(mat2gray(rgb));
 figure;imshow(mcc)
 % This line saves the figure
-exportgraphics(gcf,'Macbeth_no_wb.png')
+saveas(gcf,'data/Macbeth_no_wb.png');
 
-% Select an achromatic patch with which to white balance.
+% Select an achromatic (gray) patch with which to white balance.
 % Let's pick the 23rd gray, with 9% reflectance but experiment with
 % different patches!
 wbpatch = rgb(23,:); 
@@ -67,15 +75,17 @@ mcc_wb = visualizeColorChecker(rgb_wb);
 % Display and save the resulting image
 figure;imshow(mcc_wb)
 % This line saves the figure
-exportgraphics(gcf,'Macbeth_wb.png')
+saveas(gcf,'data/Macbeth_wb.png');
 
+% You should end up with 4 figures of combinations of Illuminant A and D65
+% as well as the Nikon and Canon camera. 
 
-%% Exercise 2 -  Calculate the XYZ and xy values of the Macbeth ColorChecker and plot on the chromaticity diagram
+%% Step 2 -  Calculate the XYZ and xy values of the Macbeth ColorChecker and plot on the chromaticity diagram
 % XYZ and xy require us to use the standard observer curves.
 close all
 
 % Load standard observer curves
-stdobs = importdata('/Users/deryaakkaynak/Documents/Research_Local/Github/Colorimetry/Underwater-colorimetry-main/CIEStandardObserver.csv');
+stdobs = importdata('data/CIEStandardObserver.csv');
 
 % interpolate the wl to the same range
 stdobs_spectra = interp1(stdobs(:,1),stdobs(:,2:4),WL);
@@ -98,7 +108,7 @@ set(gca,'ylim',[0 1])
 
 % You can save using exportgraphics again
 
-%% Exercise 3: White point xy of an illuminant
+%% Step 3: White point xy of an illuminant
 
 % In this case we assume the reflectance is a perfect white
 XYZ_light = getradiance(ones(1,numel(WL)), light_spectra, stdobs_spectra);
@@ -108,33 +118,31 @@ xy_light = XYZ_light./sum(XYZ_light,2);
 hold on
 plot(xy_light(:,1),xy_light(:,2),'kx','markersize',30,'linewidth',3)
 
-%% Exercise 4: Camera RGB to XYZ transformation
+%% Step 4: Camera RGB to XYZ transformation
 
 % Recall that we also want the XYZ to be white balanced.
 XYZ_wb = XYZ./XYZ_light;
 
 % Derive a 3x3 transform from white balanced camera RGB to white balanced
 % XYZ
-T = XYZ_wb' * pinv(rgb_wb)';
-xyz_image = (T*rgb_wb')';
+M = XYZ_wb' * pinv(rgb_wb)';
+XYZ_image = (M*rgb_wb')';
 % Obtain the xy coordinates
-xy_image = xyz_image./sum(xyz_image,2);
+xy_image = XYZ_image./sum(XYZ,2);
 
 % Plot them on the chromaticity diagram 
 plotChromaticity
 hold on
 plot(xy_image(:,1),xy_image(:,2),'kx','linewidth',3)
+
 %(remember to overlay the other camera too)
 
-%% Exercise 5 XYZ to standard RGB transformation
+%% Step 5 XYZ to standard RGB transformation
 
 % There are standard matrices for this transformation
 % See here --> http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
 % Remember that if XYZ values are already white balanced, there's no need to do a CAT.
-
+figure;
 sRGB = xyz2rgb(XYZ_wb);
 imshow(visualizeColorChecker(sRGB))
-
-
-
 
