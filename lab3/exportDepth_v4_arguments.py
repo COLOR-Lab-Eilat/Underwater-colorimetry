@@ -5,6 +5,7 @@
 
 import Metashape
 import sys
+import os
 
 # Output path is read from 'Arguments' Dialogue in Metashape
 path = sys.argv[1]
@@ -28,4 +29,4 @@ for camera in chunk.cameras:
 		compr = Metashape.ImageCompression()
 		compr.tiff_compression = Metashape.ImageCompression().TiffCompressionDeflate
 
-		depth.save(path + '/' + camera.label + ".tif", compression = compr)
+		depth.save(path + os.sep + camera.label + ".tif", compression = compr)
