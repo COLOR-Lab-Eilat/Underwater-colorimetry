@@ -8,7 +8,7 @@
 
 clear all; close all;clc; warning off
 
-%% LOAD AN IMAGE THAT HAS A CALIBRATION TARGET (Color Chart) IN THE SCENE
+%% LOAD A LINEAR PNG IMAGE THAT HAS A CALIBRATION TARGET (Color Chart) IN THE SCENE
 I = im2double(imread('NikonImage.png'));
 
 s = size(I);
