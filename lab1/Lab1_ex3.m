@@ -1,4 +1,4 @@
-% June 8, 2023 modified by pietbro January 22, 2024
+% June 8, 2023 modified January 22, 2024
 % Underwater Colorimetry Course @ IUI Eilat
 
 % Basic Colorimetry and Image formation exercises
